@@ -1,0 +1,1 @@
+sendFile then getFile calls need to wait for the sendFile to finish before calling getFile.
