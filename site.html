@@ -483,7 +483,7 @@
             }
             sendFile("removePrevious", JSON.stringify(delObj));
             getFile(siteURL+'/?action=list');
-            setTimeout(build.refresh,150);
+            setTimeout(build.refresh,300);
         }
         build.clearPrevious = function() {
             let userName;
@@ -494,7 +494,7 @@
             }
             sendFile("clearPrevious", userName);
             getFile(siteURL+'/?action=list');
-            setTimeout(build.refresh,150);
+            setTimeout(build.refresh,300);
         }
         build.refresh = function() {
             if (usr.currentPage === "addItemPage") {
@@ -555,7 +555,7 @@
             }
             sendFile("removeItem", JSON.stringify(delObj));
             getFile(siteURL+'/?action=list');
-            setTimeout(build.refresh, 100);
+            setTimeout(build.refresh, 300);
         }
         build.removeStore = function (storeName) {
             var delObj = new Object();
@@ -572,7 +572,7 @@
         build.removeUser = function (delObj) {
             sendFile("removeUser", delObj);
             getFile(siteURL+'/?action=list');
-            setTimeout(build.refresh,150);
+            setTimeout(build.refresh,300);
         }
         build.removeAllChildNodes = function (parent) {
             while (parent.firstChild) {
@@ -628,7 +628,7 @@
             addObj.stores = usr.checkStoreCheckBoxes();
             sendFile("addItem", JSON.stringify(addObj));
             getFile(siteURL+'/?action=list');
-            setTimeout(build.refresh,150);
+            setTimeout(build.refresh,300);
         }
         usr.submitStore = function() {
             var addObj = new Object();
@@ -640,20 +640,18 @@
             }
             sendFile("addStore", JSON.stringify(addObj));
             getFile(siteURL+'/?action=list');
-            setTimeout(build.refresh,150);
+            setTimeout(build.refresh,300);
         }
         usr.submitUser = function() {
             addObj = build.removeWhiteSpace(document.getElementById("addUserName").value);
             sendFile("addUser", addObj);
             getFile(siteURL+'/?action=list');
-            setTimeout(build.refresh,150);
+            setTimeout(build.refresh,300);
         }
         async function getFile(theUrl) {
             jsonPromise = await fetch(theUrl);
             listObj = await jsonPromise.json();
             await build.userSelect();
-            await build.refresh();
-            console.log("refreshed")
         }
         function sendFile(action, params) {
             const postHttp = new XMLHttpRequest();
