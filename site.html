@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Grocery List</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+    <!-- jQuery library -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script>
+    <!-- Popper JS -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <!-- Latest compiled JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-md bg-dark navbar-inverted">
+        <ul id="navBar" class="navbar-nav">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" onclick="build.storeButtons();" href="#"
+                    data-toggle="dropdown">Choose Store List</a>
+                <div id="storeMenu" class="dropdown-menu">
+
+                </div>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="build.storeList();">Stores</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" onclick="build.userList()">Users</a>
+            </li>
+            <li class="nav-item input-group mb-1">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="listType">Type: </label>
+                </div>
+                <select class="custom-select" id="listType" onchange="build.refresh();">
+                    <option value="1">Family</option>
+                    <option value="2">Personal</option>
+                </select>
+            </li>
+            <li id="userSelectLI" class="nav-item input-group mb-1" style="display: none">
+                <div class="input-group-prepend">
+                    <label class="input-group-text" for="userSelect">User: </label>
+                </div>
+                <select class="custom-select" id="userSelect" onchange="usr.switch();">
+                    <option value="1">User</option>
+                </select>
+            </li>
+        </ul>
+    </nav>
+    <div id="display" class="container-fluid">
+        <div id="listTitle" class="container-fluid" style="display:none">
+            <div id="itemListName" class="display-4">Items From All Lists</div>
+            <button id="addBtn" class="btn-lg btn-success col-md-12">Add Item</button>
+        </div>
+        <div id="addItemPage" class="container-fluid" style="display:block">
+            <h3>Which item would you like to add?</h3></br>
+            <label for="name">Item Name</label></br>
+            <input type="text" id="name"></br>
+            <label for="quantity">Item Quantity</label></br>
+            <input type="text" id="quantity"></br>
+            <p>At Which Stores?</p>
+            <div id="storeCheckBoxes"></div>
+            <label for="listType">List Type: </label></br>
+            <button id="addItem" class="btn btn-lg btn-success" onclick="usr.submitItem();">Add Item</button>
+        </div>
+        <div id="addStorePage" class="container-fluid" style="display:none">
+            <h3>Add Store</h3></br>
+            <label for="addStoreName">Store Name</label></br>
+            <input type="text" id="addStoreName"></br>
+            <button id="addStore" class="btn btn-lg btn-success" onclick="usr.submitStore();">Add</button>
+        </div>
+        <div id="addUserPage" class="container-fluid" style="display:none">
+            <h3>Add User</h3></br>
+            <label for="addUserName">New User</label></br>
+            <input type="text" id="addUserName"></br>
+            <button id="addUser" class="btn btn-lg btn-success" onclick="usr.submitUser();">Add</button>
+        </div>
+        <div id="itemListPage" class="container-fluid" style="display:none">
+            <ul id="itemList" class="list-group">
+            </ul>
+            <button id="previous" class="btn btn-lg btn-success" onclick="build.previous(usr.storeName);">View Previous</button>
+        </div>
+        <div id="storeListScreen" class="container-fluid" style="display:none">
+            <ul id="storeList" class="list-group row">
+
+            </ul>
+        </div>
+        <div id="userListScreen" class="container-fluid my-3" style="display:none">
+            <ul id="userList" class="list-group row">
+    
+            </ul>
+        </div>
+        <div id="previousPage" class="container-fluid" style="display:none">
+            <ul id="previousList" class="list-group">
+            </ul>
+        </div>
+    </div>
+    <script>
+        var listObj;
+        var build = new Object();
+        build.storeButtons = function() {
+            build.removeAllChildNodes(document.getElementById("storeMenu"));
+            var storeButtons = document.createElement("a");
+            storeButtons.id = "all";
+            storeButtons.innerHTML = "All";
+            storeButtons.className = "dropdown-item";
+            storeButtons.addEventListener("click", ()=>{build.list('all')});
+            document.getElementById("storeMenu").appendChild(storeButtons);
+            var storeList = [];
+            if (document.getElementById("listType").value === "1") {
+                storeList = listObj.stores;
+            } else {
+                eval("storeList = listObj.personal."+usr.currentUsr+".stores");
+            }
+            for (let i = 0; i < storeList.length; i += 1) {
+                let storeButtons = document.createElement("a");
+                storeButtons.id = storeList[i];
+                storeButtons.innerHTML = build.restoreWhiteSpace(storeList[i]);
+                storeButtons.className = "dropdown-item";
+                storeButtons.addEventListener("click",function(){build.list(storeList[i])});
+                document.getElementById("storeMenu").appendChild(storeButtons);
+            }
+        }
+        build.addItem = function() {
+            build.hideLists();
+            build.showList("addItemPage");
+            var checkBoxStoreList;
+            if (document.getElementById("listType").value === "1") {
+                checkBoxStoreList = listObj.stores;
+            } else {
+                eval("checkBoxStoreList = listObj.personal."+usr.currentUsr+".stores");
+            }
+            if (typeof checkBoxStoreList[0] === "string") {
+                build.removeAllChildNodes(document.getElementById("storeCheckBoxes"));
+                for (let i = 0; i < checkBoxStoreList.length; i += 1) {
+                    let checkBoxes = document.createElement("input")
+                    checkBoxes.id = checkBoxStoreList[i]+"Check";
+                    checkBoxes.setAttribute("type", "checkbox");
+                    checkBoxes.checked = false;
+                    document.getElementById("storeCheckBoxes").appendChild(checkBoxes);
+
+                    let labels = document.createElement("label");
+                    document.getElementById("storeCheckBoxes").appendChild(labels);
+                    labels.setAttribute("for", checkBoxStoreList[i]);
+                    labels.innerHTML = build.restoreWhiteSpace(checkBoxStoreList[i]);
+                    document.getElementById("storeCheckBoxes").appendChild(document.createElement("br"));
+                }
+            } else {
+                document.getElementById("storeCheckBoxes").innerHTML = "You don't have any stores listed.";
+            }
+            usr.currentPage = "addItemPage";
+        }
+        build.addStore = function() {
+            build.hideLists();
+            build.showList("addStorePage");
+            usr.currentPage = "addStorePage";
+        }
+        build.addUser = function() {
+            build.hideLists();
+            build.showList("addUserPage");
+            usr.currentPage = "addUserPage";
+        }
+        build.list = function(storeName) {
+            usr.storeName = storeName;
+            build.hideLists();
+            build.showList("itemListPage")
+            build.removeAllChildNodes(document.getElementById("itemList"))
+            if (storeName === "all") {
+                if (document.getElementById("listType").value === "1") {
+                    build.listTitle("Items From All Lists", "Add Item", build.addItem);
+                    for (let i = 0; i < listObj.itemArr.length; i += 1) {
+                        let qty;
+                        eval("qty = listObj."+listObj.itemArr[i]+".quantity;")
+                        let listElement = build.listItemWithBtn(
+                            "item_" + listObj.itemArr[i], 
+                            build.restoreWhiteSpace(listObj.itemArr[i]), 
+                            function(){build.editItem(listObj.itemArr[i])}, 
+                            "Remove", 
+                            function(){build.removeItem(listObj.itemArr[i])},
+                            qty,
+                            listObj.itemArr[i]
+                        )
+                        document.getElementById("itemList").appendChild(listElement);
+                    }
+                } else {
+                    build.listTitle(usr.currentUsr+"'s Items From All Lists", "Add Item", build.addItem);
+                    let thisItem;
+                    let itemArr;
+                    let qty;
+                    eval("itemArr = listObj.personal."+usr.currentUsr+".itemArr;");
+                    for (let i = 0; i < itemArr.length; i += 1) {
+
+                        eval("qty = listObj.personal."+usr.currentUsr+"."+itemArr[i]+".quantity;")
+                        let listElement = build.listItemWithBtn(
+                            'item_'+itemArr[i], 
+                            build.restoreWhiteSpace(itemArr[i]),
+                            function(){build.editItem(itemArr[i])},
+                            'Remove',
+                            function(){build.removeItem(itemArr[i])},
+                            qty,
+                            itemArr[i]
+                        );
+                        document.getElementById('itemList').appendChild(listElement);
+                    }
+                }
+            } else {
+                var inThisList = [];
+                let itemObj;
+                let qty = [];
+                if (document.getElementById("listType").value === "1") {
+                    for (let i=0; i<listObj.itemArr.length; i+=1) {
+                        eval("itemObj = listObj."+listObj.itemArr[i]+".stores")
+                        for (let h=0; h<itemObj.length; h+=1) {
+                            if (itemObj[h] === storeName) {
+                                inThisList[inThisList.length] = listObj.itemArr[i];
+                                eval("qty[qty.length] = listObj."+listObj.itemArr[i]+".quantity;")
+                            }
+                        }
+                    }
+                } else {
+                    var storesObj;
+                    var qtyObj;
+                    eval("itemObj = listObj.personal."+usr.currentUsr+".itemArr;");
+                    for (let i=0; i<itemObj.length; i+=1) {
+                        eval("storesObj = listObj.personal."+usr.currentUsr+"."+itemObj[i]+".stores");
+                        eval("qtyObj = listObj.personal."+usr.currentUsr+"."+itemObj[i]+".quantity")
+                        for (let h=0; h<storesObj.length; h+=1) {
+                            if (storesObj[h] === storeName) {
+                                inThisList[inThisList.length] = itemObj[i]; 
+                                eval("qty[qty.length] = qtyObj;")
+                            }
+                        }
+                    };
+                    storeName = build.restoreWhiteSpace(usr.currentUsr)+"'s "+storeName;
+                }
+                build.listTitle(storeName+" List", "Add Item", build.addItem);
+                for (let i = 0; i < inThisList.length; i += 1) {
+                    let listElement = build.listItemWithBtn(
+                        "item_"+inThisList[i], 
+                        build.restoreWhiteSpace(inThisList[i]), 
+                        function(){build.editItem(inThisList[i])}, 
+                        "Remove", 
+                        function(){build.removeItem(inThisList[i])},
+                        qty[i],
+                        inThisList[i]
+                    );
+                    document.getElementById("itemList").appendChild(listElement);
+                }
+            }
+            usr.currentPage = "itemListPage";
+        }
+        build.storeList = function() {
+            build.hideLists();
+            build.showList("storeListScreen");
+            build.removeAllChildNodes(document.getElementById("storeList"))
+            var thisStoreList;
+            if (document.getElementById("listType").value === "1") {
+                build.listTitle("Stores", "Add Store", build.addStore);
+                thisStoreList = listObj.stores;
+            } else {
+                build.listTitle(usr.currentUsr+"'s Stores", "Add Store", build.addStore);
+                eval("thisStoreList = listObj.personal."+usr.currentUsr+".stores");
+            }
+            for (let i = 0; i < thisStoreList.length; i += 1) {
+                let listElement = build.listItemWithBtn(
+                    "store_"+thisStoreList[i], 
+                    build.restoreWhiteSpace(thisStoreList[i]), 
+                    function(){}, 
+                    "Remove", 
+                    function(){build.removeStore(thisStoreList[i])}
+                )
+                document.getElementById("storeList").appendChild(listElement);
+            }
+            usr.currentPage = "storeListScreen";
+        }
+        build.userList = function() {
+            build.hideLists();
+            build.showList("userListScreen");
+            build.removeAllChildNodes(document.getElementById("userList"))
+            build.listTitle("Users", "Add User", build.addUser);
+            for (let i = 0; i < listObj.users.length; i += 1) {
+                let listElement = build.listItemWithBtn(
+                    "users_"+listObj.users[i], 
+                    build.restoreWhiteSpace(listObj.users[i]), 
+                    function(){}, 
+                    "Remove", 
+                    function(){build.removeUser(listObj.users[i])}
+                )
+                document.getElementById("userList").appendChild(listElement);
+            }
+            usr.currentPage = "userListScreen";
+            build.userSelect();
+        }
+        build.userSelect = function() {
+            build.removeAllChildNodes(document.getElementById("userSelect"))
+            for (let i = 0; i < listObj.users.length; i += 1) {
+                let userOption = document.createElement("option");
+                userOption.innerHTML = build.restoreWhiteSpace(listObj.users[i]);
+                userOption.value = listObj.users[i];
+                userOption.addEventListener("click",usr.switch);
+                document.getElementById("userSelect").appendChild(userOption);
+            }
+            document.getElementById("userSelect").value = usr.currentUsr;
+        }
+        build.listTitle = function(titleText, addText, addClick) {
+            build.showList("listTitle");
+            build.removeAllChildNodes(document.getElementById("listTitle"));
+            let title = document.createElement("div");
+            title.className = "display-4";
+            title.innerHTML = build.restoreWhiteSpace(titleText);
+            document.getElementById("listTitle").appendChild(title);
+            let addItemBtn = document.createElement("button");
+            addItemBtn.className = "btn-lg btn-success col-md-12";
+            addItemBtn.innerHTML = addText;
+            addItemBtn.addEventListener("click", addClick);
+            document.getElementById("listTitle").appendChild(addItemBtn);
+        }
+        build.listItemWithBtn = function (linkId, linkText, linkClick, btnText, btnClick, qty, obj) {
+            let listItem = document.createElement("li");
+            listItem.className = "list-group-item";
+            listItem.id = linkId;
+            qty = parseInt(qty)
+
+            if (qty) {
+                let container = document.createElement("div")
+                container.className = "btn-group-lg"
+
+                let plus = document.createElement("button")
+                plus.innerHTML = "+"
+                plus.className = "btn-dark rounded-pill"
+                plus.addEventListener("click",function() {plusFunc(qty, obj)})
+
+                container.appendChild(plus);
+
+                let quant = document.createElement("span")
+                quant.innerHTML = qty;
+                quant.className = "badge badge-light";
+                quant.style = "font-size: 22px"
+                container.appendChild(quant);
+
+                let minus = document.createElement("button")
+                minus.innerHTML = "-"
+                minus.addEventListener("click",function() {minusFunc(qty, obj)})
+                minus.className = "btn-dark rounded-pill"
+                container.appendChild(minus);
+
+                listItem.appendChild(container);
+            }
+            function plusFunc(qty, obj) {
+                if (document.getElementById("listType").value === "1") {
+                    eval("listObj."+obj+".quantity = qty+1;");
+                } else {
+                    eval("listObj.personal."+usr.currentUsr+"."+obj+".quantity = qty+1;");
+                }
+                build.list(usr.storeName);
+            }
+            function minusFunc(qty, obj) {
+                if (qty === 1) {return;}
+                if (document.getElementById("listType").value === "1") {
+                    eval("listObj."+obj+".quantity = qty-1;");
+                } else {
+                    eval("listObj.personal."+usr.currentUsr+"."+obj+".quantity = qty-1;");
+                }
+                build.list(usr.storeName);
+            }
+
+            let anch = document.createElement("a")
+            anch.innerHTML = linkText;
+            anch.className = "container";
+            anch.onclick = linkClick;
+
+            let removeBtn = document.createElement("button");
+            removeBtn.innerHTML = btnText;
+            removeBtn.className = "btn btn-danger btn-sm float-right";
+            removeBtn.addEventListener("click", btnClick);
+            listItem.appendChild(anch);
+            listItem.appendChild(removeBtn);
+            return listItem;
+        }
+        build.previous = function(storeName) {
+            usr.storeName = storeName;
+            build.hideLists();
+            build.showList("previousPage")
+            build.removeAllChildNodes(document.getElementById("previousList"))
+            if (storeName === "all") {
+                if (document.getElementById("listType").value === "1") {
+                    build.listTitle("Previous Items", "Clear All Previous Items", build.clearPrevious);
+                    for (let i = 0; i < listObj.previous.prevArr.length; i += 1) {
+                        let listElement = build.listItemWithBtn(
+                            "prev_" + listObj.previous.prevArr[i], 
+
+                            build.restoreWhiteSpace(listObj.previous.prevArr[i]), 
+                            function(){build.restorePrevious(listObj.previous.prevArr[i])}, 
+                            "Clear", 
+                            function(){build.removePrevious(listObj.previous.prevArr[i])}
+                        )
+                        document.getElementById("previousList").appendChild(listElement);
+                    }
+                } else {
+                    build.listTitle(usr.currentUsr+"'s Previous Items", "Clear "+usr.currentUsr+"'s Previous Items", build.clearPrevious);
+                    eval(
+                        "for (let i = 0; i < listObj.personal."+usr.currentUsr+".previous.prevArr.length; i += 1) {"+
+                            "let listElement = build.listItemWithBtn("+
+                                "'prev_'+listObj.personal."+usr.currentUsr+".previous.prevArr[i], "+
+                                "build.restoreWhiteSpace(listObj.personal."+usr.currentUsr+".previous.prevArr[i]), "+
+                                "function(){build.restorePrevious(listObj.personal."+usr.currentUsr+".previous.prevArr[i])}, "+
+                                "'Clear', "+
+                                "function(){build.removePrevious(listObj.personal."+usr.currentUsr+".previous.prevArr[i])}"+
+                            ");"+
+                            "document.getElementById('previousList').appendChild(listElement);}"
+                    );
+                }
+            } else {
+                var inThisList = [];
+                let itemObj;
+                if (document.getElementById("listType").value === "1") {
+                    for (let i=0; i<listObj.previous.prevArr.length; i+=1) {
+                        eval("itemObj = listObj.previous."+listObj.previous.prevArr[i]+".stores")
+                        for (let h=0; h<itemObj.length; h+=1) {
+                            if (itemObj[h] === storeName) {
+                                inThisList[inThisList.length] = listObj.previous.prevArr[i];
+                            }
+                        }
+                    }
+                    storeName = "Previous "+storeName;
+                } else {
+                    var storesObj;
+                    eval("itemObj = listObj.personal."+usr.currentUsr+".previous.prevArr;");
+                    for (let i=0; i<itemObj.length; i+=1) {
+                        eval("storesObj = listObj.personal."+usr.currentUsr+"."+itemObj[i]+".stores");
+                        for (let h=0; h<storesObj.length; h+=1) {
+                            if (storesObj[h] === storeName) {
+                                inThisList[inThisList.length] = itemObj[i]; 
+                            }
+                        }
+                    };
+                    storeName = build.restoreWhiteSpace(usr.currentUsr)+"'s Previous "+storeName;
+                }
+                build.listTitle(storeName+" Items", "Add Item", build.addItem);
+                for (let i = 0; i < inThisList.length; i += 1) {
+                    let listElement = build.listItemWithBtn(
+                        "item_"+inThisList[i], 
+                        build.restoreWhiteSpace(inThisList[i]), 
+                        function(){build.editItem(inThisList[i])}, 
+                        "Remove", 
+                        function(){build.removeItem(inThisList[i])}
+                    );
+                    document.getElementById("itemList").appendChild(listElement);
+                }
+            }
+            usr.currentPage = "previousPage";
+        }
+        build.restorePrevious = function(addObj) {
+            build.addItem()
+            var prevItem;
+            var stores;
+            if (document.getElementById("listType").value === "1") {
+                eval("prevItem = listObj.previous."+addObj+";")
+                stores = listObj.stores;
+            } else {
+                eval("prevItem = listObj.personal."+usr.currentUsr+".previous."+addObj+";")
+                eval("stores = listObj.personal."+usr.currentUsr+".stores;")
+            }
+            document.getElementById("name").value = build.restoreWhiteSpace(addObj)
+            document.getElementById("quantity").value = 1;
+            for (i = 0; i < prevItem.stores.length; i += 1) {
+                if (stores.includes(prevItem.stores[i])) {
+                    document.getElementById(prevItem.stores[i]+"Check").checked = true;
+                }
+            }
+        }
+        build.removePrevious = function(prev) {
+            var delObj = new Object();
+            delObj.name = prev;
+            if (document.getElementById("listType").value === "1") {
+                delObj.enteredBy = usr.currentUsr;
+            } else {
+                delObj.enteredBy = "!P_"+usr.currentUsr;
+            }
+            sendFile("removePrevious", JSON.stringify(delObj));
+            getFile('http://localhost:3000/?action=list');
+            setTimeout(build.refresh,150);
+        }
+        build.clearPrevious = function() {
+            let userName;
+            if (document.getElementById("listType").value === "1") {
+                userName = usr.currentUsr;
+            } else {
+                userName = "!P_"+usr.currentUsr;
+            }
+            sendFile("clearPrevious", userName);
+            getFile('http://localhost:3000/?action=list');
+            setTimeout(build.refresh,150);
+        }
+        build.refresh = function() {
+            if (usr.currentPage === "addItemPage") {
+                build.list(usr.storeName);
+            } else if (usr.currentPage === "addStorePage") {
+                build.storeList();
+            } else if (usr.currentPage === "addUserPage") {
+                build.userList();
+            } else if (usr.currentPage === "itemListPage") {
+                build.list(usr.storeName);
+            } else if (usr.currentPage === "storeListScreen") {
+                build.storeList();
+            } else if (usr.currentPage === "userListScreen") {
+                build.userList();
+            } else if (usr.currentPage === "previousPage") {
+                build.previous(usr.storeName);
+            }
+            if (document.getElementById("listType").value === "1") {
+                document.getElementById("userSelectLI").style = "display: none";
+            } else {
+                document.getElementById("userSelectLI").style = "display: listitem";
+                build.userSelect();
+            }
+        }
+        build.hideLists = function () {
+            var elements = ["listTitle","addItemPage","storeListScreen","userListScreen","itemListPage","addStorePage","addUserPage","previousPage"];
+            for (i=0; i<elements.length; i+=1) {
+                document.getElementById(elements[i]).style = "display:none"
+            }
+        }
+        build.showList = function(listId) {
+            document.getElementById(listId).style = "display:block"
+        }
+        build.editItem = function (itemName) {
+            build.addItem()
+            var thisItem = [];
+            var storeList = [];
+            if (document.getElementById("listType").value === "1") {
+                eval("thisItem = listObj."+itemName+".stores; storeList = listObj.stores;")
+            } else {
+                eval("thisItem = listObj.personal."+usr.currentUsr+"."+itemName+".stores; storeList = listObj.personal."+usr.currentUsr+".stores")
+            }
+            document.getElementById("name").value = build.restoreWhiteSpace(itemName)
+            document.getElementById("quantity").value = 1;
+            for (let i = 0; i < thisItem.length; i += 1) {
+                if (storeList.includes(thisItem[i])) {
+                    document.getElementById(thisItem[i]+'Check').checked = true;
+                }
+            }
+        }
+        build.removeItem = function (itemName) {
+            var delObj = new Object();
+            delObj.name = itemName;
+            if (document.getElementById("listType").value === "1") {
+                delObj.enteredBy = usr.currentUsr;
+            } else {
+                delObj.enteredBy = "!P_"+usr.currentUsr;
+            }
+            sendFile("removeItem", JSON.stringify(delObj));
+            getFile('http://localhost:3000/?action=list');
+            setTimeout(build.refresh, 100);
+        }
+        build.removeStore = function (storeName) {
+            var delObj = new Object();
+            delObj.name = storeName;
+            if (document.getElementById("listType").value === "1") {
+                delObj.enteredBy = usr.currentUsr;
+            } else {
+                delObj.enteredBy = "!P_"+usr.currentUsr;
+            }
+            sendFile("removeStore", JSON.stringify(delObj));
+            getFile('http://localhost:3000/?action=list');
+            setTimeout(build.storeList, 100);
+        }
+        build.removeUser = function (delObj) {
+            sendFile("removeUser", delObj);
+            getFile('http://localhost:3000/?action=list');
+            setTimeout(build.refresh,150);
+        }
+        build.removeAllChildNodes = function (parent) {
+            while (parent.firstChild) {
+                parent.removeChild(parent.firstChild);
+            }
+        }
+        build.removeWhiteSpace = function(str) {
+            let tmp = str.split(" ");
+            return tmp.join("_");
+        }
+        build.restoreWhiteSpace = function(str) {
+            let tmp = str.split("_");
+            return tmp.join(" ");
+        }
+
+        var usr = new Object();
+        usr.currentUsr = "Andrew";
+        usr.currentPage = "";
+        usr.storeName = "";
+        usr.checkStoreCheckBoxes = function() {
+            var storesArr;
+            if (document.getElementById("listType").value === "2") {
+                eval("storesArr = listObj.personal."+usr.currentUsr+".stores")
+            } else {
+                storesArr = listObj.stores;
+            }
+            if (storesArr) {
+                let checked = [];
+                for (let i = 0; i < storesArr.length; i += 1) {
+                    if (document.getElementById(storesArr[i]+"Check").checked === true) {
+                        checked[checked.length] = storesArr[i];
+                    }
+                }
+                return checked;
+            }
+        }
+        usr.switch = function() {
+            if (document.getElementById("userSelect").value !== usr.currentUsr) {
+                usr.currentUsr = document.getElementById("userSelect").value;
+                build.userSelect()
+            }
+            build.refresh();
+        }
+        usr.submitItem = function () {
+            var addObj = new Object();
+            addObj.name = build.removeWhiteSpace(document.getElementById("name").value);
+            addObj.quantity = document.getElementById("quantity").value;
+            if (document.getElementById("listType").value === "1") {
+                addObj.enteredBy = usr.currentUsr;
+            } else {
+                addObj.enteredBy = "!P_"+usr.currentUsr;
+            }
+            addObj.stores = usr.checkStoreCheckBoxes();
+            sendFile("addItem", JSON.stringify(addObj));
+            getFile('http://localhost:3000/?action=list');
+            setTimeout(build.refresh,150);
+        }
+        usr.submitStore = function() {
+            var addObj = new Object();
+            addObj.name = build.removeWhiteSpace(document.getElementById("addStoreName").value);
+            if (document.getElementById("listType").value === "1") {
+                addObj.enteredBy = usr.currentUsr;
+            } else {
+                addObj.enteredBy = "!P_"+usr.currentUsr;
+            }
+            sendFile("addStore", JSON.stringify(addObj));
+            getFile('http://localhost:3000/?action=list');
+            setTimeout(build.refresh,150);
+        }
+        usr.submitUser = function() {
+            addObj = build.removeWhiteSpace(document.getElementById("addUserName").value);
+            sendFile("addUser", addObj);
+            getFile('http://localhost:3000/?action=list');
+            setTimeout(build.refresh,150);
+        }
+        async function getFile(theUrl) {
+            jsonPromise = await fetch(theUrl);
+            listObj = await jsonPromise.json();
+            await build.userSelect();
+        }
+        function sendFile(action, params) {
+            const postHttp = new XMLHttpRequest();
+            postHttp.open("POST", "/?action=" + action);
+            postHttp.setRequestHeader("Content-Type", "application/json");
+            postHttp.send(params);
+        }
+        getFile('http://localhost:3000/?action=list');
+    </script>
+</body>
+</html>
