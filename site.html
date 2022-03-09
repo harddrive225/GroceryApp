@@ -652,6 +652,7 @@
             jsonPromise = await fetch(theUrl);
             listObj = await jsonPromise.json();
             await build.userSelect();
+            await build.resfresh();
         }
         function sendFile(action, params) {
             const postHttp = new XMLHttpRequest();
