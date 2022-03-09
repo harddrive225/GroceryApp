@@ -2,7 +2,7 @@ var http = require('http');
 var url = require('url');
 var listObj = require('./list.json')
 var site = require('fs')
-var server = http.createServer(responseFunc).listen(3000);
+var server = http.createServer(responseFunc).listen(process.env.PORT || 3000);
 
 function responseFunc(req, res) {
   var q = url.parse(req.url,true).query;

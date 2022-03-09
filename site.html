@@ -100,6 +100,7 @@
     </div>
     <script>
         var listObj;
+        var siteURL = "https://family-grocery-list.herokuapp.com/"
         var build = new Object();
         build.storeButtons = function() {
             build.removeAllChildNodes(document.getElementById("storeMenu"));
@@ -481,7 +482,7 @@
                 delObj.enteredBy = "!P_"+usr.currentUsr;
             }
             sendFile("removePrevious", JSON.stringify(delObj));
-            getFile('http://localhost:3000/?action=list');
+            getFile(siteURL+'/?action=list');
             setTimeout(build.refresh,150);
         }
         build.clearPrevious = function() {
@@ -492,7 +493,7 @@
                 userName = "!P_"+usr.currentUsr;
             }
             sendFile("clearPrevious", userName);
-            getFile('http://localhost:3000/?action=list');
+            getFile(siteURL+'/?action=list');
             setTimeout(build.refresh,150);
         }
         build.refresh = function() {
@@ -553,7 +554,7 @@
                 delObj.enteredBy = "!P_"+usr.currentUsr;
             }
             sendFile("removeItem", JSON.stringify(delObj));
-            getFile('http://localhost:3000/?action=list');
+            getFile(siteURL+'/?action=list');
             setTimeout(build.refresh, 100);
         }
         build.removeStore = function (storeName) {
@@ -565,12 +566,12 @@
                 delObj.enteredBy = "!P_"+usr.currentUsr;
             }
             sendFile("removeStore", JSON.stringify(delObj));
-            getFile('http://localhost:3000/?action=list');
+            getFile(siteURL+'/?action=list');
             setTimeout(build.storeList, 100);
         }
         build.removeUser = function (delObj) {
             sendFile("removeUser", delObj);
-            getFile('http://localhost:3000/?action=list');
+            getFile(siteURL+'/?action=list');
             setTimeout(build.refresh,150);
         }
         build.removeAllChildNodes = function (parent) {
@@ -626,7 +627,7 @@
             }
             addObj.stores = usr.checkStoreCheckBoxes();
             sendFile("addItem", JSON.stringify(addObj));
-            getFile('http://localhost:3000/?action=list');
+            getFile(siteURL+'/?action=list');
             setTimeout(build.refresh,150);
         }
         usr.submitStore = function() {
@@ -638,13 +639,13 @@
                 addObj.enteredBy = "!P_"+usr.currentUsr;
             }
             sendFile("addStore", JSON.stringify(addObj));
-            getFile('http://localhost:3000/?action=list');
+            getFile(siteURL+'/?action=list');
             setTimeout(build.refresh,150);
         }
         usr.submitUser = function() {
             addObj = build.removeWhiteSpace(document.getElementById("addUserName").value);
             sendFile("addUser", addObj);
-            getFile('http://localhost:3000/?action=list');
+            getFile(siteURL+'/?action=list');
             setTimeout(build.refresh,150);
         }
         async function getFile(theUrl) {
@@ -658,7 +659,7 @@
             postHttp.setRequestHeader("Content-Type", "application/json");
             postHttp.send(params);
         }
-        getFile('http://localhost:3000/?action=list');
+        getFile(siteURL+'/?action=list');
     </script>
 </body>
 </html>
