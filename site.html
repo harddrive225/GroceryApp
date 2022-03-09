@@ -651,6 +651,10 @@
         async function getFile(theUrl) {
             jsonPromise = await fetch(theUrl);
             listObj = await jsonPromise.json();
+            listObj.then(function() {
+                build.refresh();
+                console.log("refreshed")
+            })
             await build.userSelect();
         }
         function sendFile(action, params) {
