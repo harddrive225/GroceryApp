@@ -1,0 +1,20 @@
+{
+  "name": "groceryapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "test",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/harddrive225/GroceryApp.git"
+  },
+  "author": "harddrive225",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/harddrive225/GroceryApp/issues"
+  },
+  "homepage": "https://github.com/harddrive225/GroceryApp#readme"
+}
